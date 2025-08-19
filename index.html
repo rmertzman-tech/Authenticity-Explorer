@@ -3,383 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRF Prototype: The Authenticity App</title>
+    <title>Authenticity Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* A simple fade-in animation for screen transitions */
-        .screen {
-            animation: fadeIn 0.5s ease-in-out;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease-in-out;
         }
-        .hidden {
-            display: none;
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn {
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 font-sans">
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white rounded-xl shadow-2xl p-8 md:p-12 w-full max-w-2xl text-center">
-
-        <!-- Initial Welcome Screen -->
-        <div id="start-screen" class="screen">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">The Authenticity Explorer</h1>
-            <p class="text-gray-600 mb-8">A tool for connecting with your core self.</p>
-            <button id="start-here-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Start Here</button>
-        </div>
-
-        <!-- Explanation Screen -->
-        <div id="explanation-screen" class="screen hidden text-left">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">The Path to Practical Wisdom</h2>
-            <p class="text-gray-700 mb-4">This app focuses on your **Authenticity Criteria**—your internal standards for being true to yourself. It's about your non-negotiable values and the "felt sense" of integrity that guides you.</p>
-            <p class="text-gray-700 mb-4">Understanding what makes you feel authentic is key to making choices that lead to a coherent life, especially when facing difficult challenges.</p>
-            <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md my-6">
-                <h3 class="font-bold">Your Privacy is Protected</h3>
-                <p>This tool is 100% private. All data you enter is saved **only in your browser** on this computer. It is never sent to a server, and no one else can see it.</p>
-            </div>
-            <div class="text-center">
-                 <button id="continue-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Continue</button>
+    <div id="app" class="w-full max-w-2xl mx-auto">
+        <!-- Initial screen: Resume or Start New -->
+        <div id="initial-screen" class="text-center card p-8">
+            <h1 class="text-3xl font-bold mb-6">Authenticity Explorer</h1>
+            <p class="mb-8 text-gray-600">You can start a new session or resume your previous one if available.</p>
+            <div class="flex justify-center gap-4">
+                <button id="resume-btn" class="btn btn-secondary px-6 py-3 rounded-lg font-semibold text-lg">Resume</button>
+                <button id="new-btn" class="btn btn-primary px-6 py-3 rounded-lg font-semibold text-lg">Start New</button>
             </div>
         </div>
 
-        <!-- Session Screen -->
-        <div id="session-screen" class="screen hidden">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Your Session</h1>
-            <p class="text-gray-600 mb-8">You can start a new session or resume your previously saved work for the Authenticity module.</p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <button id="start-new-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Start New Session</button>
-                <button id="resume-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">Resume Session</button>
+        <!-- Main question interface -->
+        <div id="question-screen" class="hidden card p-8">
+            <div class="mb-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold" id="question-title"></h2>
+                    <span id="question-counter" class="text-sm font-medium text-gray-500"></span>
+                </div>
+                <p class="text-gray-600 mt-2" id="question-text"></p>
+            </div>
+            <textarea id="response" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Type your thoughts here..."></textarea>
+            <div class="flex justify-between mt-6">
+                <button id="prev-btn" class="btn btn-secondary px-5 py-2 rounded-lg font-semibold">Previous</button>
+                <div class="flex gap-2">
+                     <button id="summary-btn" class="btn btn-primary px-5 py-2 rounded-lg font-semibold">Summary</button>
+                     <button id="next-btn" class="btn btn-primary px-5 py-2 rounded-lg font-semibold">Next</button>
+                </div>
             </div>
         </div>
 
-        <!-- Domain Input Screen -->
-        <div id="domain-screen" class="screen hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Identify a Moral Challenge</h2>
-            <p class="text-gray-600 mb-6">Describe the same specific challenge you've been focusing on. Consistency is key.</p>
-            <input type="text" id="domain-input" class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="e.g., Pressure to cheat on an assignment...">
-            <button id="begin-btn" class="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Begin Analysis</button>
-        </div>
-
-        <!-- Question Screen -->
-        <div id="question-screen" class="screen hidden">
-            <h2 id="question-title" class="text-xl font-bold text-gray-800 mb-2"></h2>
-            <p id="question-text" class="text-gray-700 text-lg mb-6"></p>
-            <textarea id="answer-input" rows="6" class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="Your thoughts..."></textarea>
-            <div id="question-hint" class="text-left text-sm text-gray-500 bg-gray-50 p-3 rounded-md mt-4"></div>
-            <div class="mt-6 flex justify-center gap-4">
-                <button id="back-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Back</button>
-                <button id="next-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Next</button>
+        <!-- Summary screen -->
+        <div id="summary-screen" class="hidden card p-8">
+            <h2 class="text-3xl font-bold mb-6 text-center">Summary of Your Thoughts on Authenticity</h2>
+            <div id="summary-content" class="space-y-4"></div>
+            <div class="text-center mt-8">
+                <button id="back-to-questions-btn" class="btn btn-secondary px-6 py-3 rounded-lg font-semibold">Back to Questions</button>
             </div>
         </div>
-
-        <!-- Review & Export Screen -->
-        <div id="review-screen" class="screen hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Your Authenticity Framework</h2>
-            <p class="text-gray-600 mb-6">Review your answers. Copy or download your results to save them permanently.</p>
-            <div id="review-content" class="text-left bg-gray-50 p-4 border border-gray-200 rounded-lg mb-6 whitespace-pre-wrap text-sm"></div>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <button id="copy-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Copy to Clipboard</button>
-                <button id="download-btn" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Download File</button>
-            </div>
-             <button id="finish-btn" class="mt-6 bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Finish & See Next Steps</button>
-        </div>
-
-        <!-- Conclusion Screen -->
-        <div id="conclusion-screen" class="screen hidden text-left">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">Next Steps on Your Path</h2>
-            <p class="text-gray-700 mb-4">You have now mapped your **Authenticity Criteria** for this challenge. This is about what it means to be true to yourself under pressure.</p>
-            <ul class="list-disc list-inside text-gray-700 mb-6 space-y-2">
-                <li>Continue this process by using the final apps to map your **Assembly History** and **Future Pull**.</li>
-                <li>The **TCF Synthesizer** will then analyze all six components to reveal the precise points of tension and coherence in your thinking.</li>
-                <li>By repeating this for different challenges, your **ATCF** will measure your growing capacity for practical wisdom—your "weaver's mastery" at creating a coherent and authentic life.</li>
-            </ul>
-            <div class="text-center">
-                 <button id="start-over-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">Start a New Module</button>
-            </div>
-        </div>
-
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Local Storage Key ---
-            const STORAGE_KEY = 'prfAuthenticityAppProgress';
+            // Application state and elements
+            const initialScreen = document.getElementById('initial-screen');
+            const questionScreen = document.getElementById('question-screen');
+            const summaryScreen = document.getElementById('summary-screen');
 
-            // --- Get references to all HTML elements ---
-            const screens = {
-                start: document.getElementById('start-screen'),
-                explanation: document.getElementById('explanation-screen'),
-                session: document.getElementById('session-screen'),
-                domain: document.getElementById('domain-screen'),
-                question: document.getElementById('question-screen'),
-                review: document.getElementById('review-screen'),
-                conclusion: document.getElementById('conclusion-screen'),
-            };
+            const resumeBtn = document.getElementById('resume-btn');
+            const newBtn = document.getElementById('new-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const summaryBtn = document.getElementById('summary-btn');
+            const backToQuestionsBtn = document.getElementById('back-to-questions-btn');
 
-            const buttons = {
-                startHere: document.getElementById('start-here-btn'),
-                continue: document.getElementById('continue-btn'),
-                startNew: document.getElementById('start-new-btn'),
-                resume: document.getElementById('resume-btn'),
-                begin: document.getElementById('begin-btn'),
-                back: document.getElementById('back-btn'),
-                next: document.getElementById('next-btn'),
-                copy: document.getElementById('copy-btn'),
-                download: document.getElementById('download-btn'),
-                finish: document.getElementById('finish-btn'),
-                startOver: document.getElementById('start-over-btn'),
-            };
+            const questionTitle = document.getElementById('question-title');
+            const questionText = document.getElementById('question-text');
+            const questionCounter = document.getElementById('question-counter');
+            const responseTextArea = document.getElementById('response');
+            const summaryContent = document.getElementById('summary-content');
 
-            const inputs = {
-                domain: document.getElementById('domain-input'),
-                answer: document.getElementById('answer-input'),
-            };
+            const storageKey = 'authenticity_app_state';
 
-            const displays = {
-                questionTitle: document.getElementById('question-title'),
-                questionText: document.getElementById('question-text'),
-                questionHint: document.getElementById('question-hint'),
-                reviewContent: document.getElementById('review-content'),
-            };
-
-            // --- Define the questions for the app ---
+            // --- Questions Data ---
             const questions = [
-                // Category 1: Core Values & Identity
-                { 
-                    type: "Past", 
-                    text: "Think of a past version of yourself in this situation. What values were most important to that person's identity?",
-                    hint: "<strong>Hint:</strong> Think about what was most important to a younger you. For example: 'In my friendships, my past self's core value was *fitting in*.'"
-                },
-                { 
-                    type: "Present", 
-                    text: "Right now, what are your 3-5 non-negotiable core values in this situation? What does it feel like when you act in alignment with them?",
-                    hint: "<strong>Hint:</strong> List key words (e.g., Honesty, Compassion, Freedom). Then, describe the physical or emotional feeling. For example: 'When I act with honesty, I feel *calm and centered*.'"
-                },
-                { 
-                    type: "Future", 
-                    text: "As you look to the future, what kind of person do you aspire to be in this situation? What values will define this future authentic self?",
-                    hint: "<strong>Hint:</strong> Describe the *qualities* of this future person. For example: 'My future self in my career is defined by the values of *courage and creativity*.'"
-                },
-                // Category 2: Integrity & Dissonance
-                { 
-                    type: "Past", 
-                    text: "Can you recall a time in this area when you made a choice that felt inauthentic? What standard or value was violated?",
-                    hint: "<strong>Hint:</strong> Focus on a specific memory. For example: 'I felt inauthentic when I *stayed silent about an issue* because I violated my value of *speaking up for others*.'"
-                },
-                { 
-                    type: "Present", 
-                    text: "In your life today, what are the signals that tell you you're not being true to yourself in this situation? How does that dissonance feel?",
-                    hint: "<strong>Hint:</strong> What are the internal red flags? For example: 'My signal is a *feeling of tightness in my chest*,' or 'I know I'm off track when I start *avoiding the topic*.'"
-                },
-                { 
-                    type: "Future", 
-                    text: "Looking forward, what is the single most important commitment you can make to ensure you maintain your integrity in this domain?",
-                    hint: "<strong>Hint:</strong> Make it a concrete action or mindset. For example: 'My commitment is to *pause and check in with my values* before making a big decision.'"
-                },
+                { title: "Defining Authenticity", text: "What does it mean to be 'authentic' or 'true to yourself'? How do you know when you are being authentic?" },
+                { title: "Internal vs. External Self", text: "Do you ever feel a difference between who you are on the inside and the person you present to the world? Why or why not?" },
+                { title: "Social Pressure", text: "Describe a time you felt pressured to act or think in a way that didn't feel authentic to you. What was the situation and how did you handle it?" },
+                { title: "Values and Actions", text: "How do your personal values guide your actions? Do you feel most authentic when your actions align with your values?" },
+                { title: "Growth and Change", text: "Can a person change significantly and still be authentic? How does personal growth relate to being true to yourself?" }
             ];
 
-            // --- App State ---
-            let currentQuestionIndex = 0;
-            let userDomain = "";
-            let userAnswers = [];
-
-            // --- Local Storage Functions ---
-            const saveProgress = () => {
-                const progress = { userDomain, currentQuestionIndex, userAnswers };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+            let currentState = {
+                currentQuestionIndex: 0,
+                responses: Array(questions.length).fill('')
             };
 
-            const loadProgress = () => {
-                const savedData = localStorage.getItem(STORAGE_KEY);
-                if (savedData) {
-                    return JSON.parse(savedData);
-                }
-                return null;
-            };
-
-            const clearProgress = () => {
-                localStorage.removeItem(STORAGE_KEY);
-            };
-
-            const checkResumeState = () => {
-                const savedData = loadProgress();
-                if (savedData && savedData.userDomain) {
-                    buttons.resume.classList.remove('hidden');
+            // --- Initialization ---
+            function init() {
+                const savedState = localStorage.getItem(storageKey);
+                if (savedState) {
+                    resumeBtn.classList.remove('btn-disabled');
+                    resumeBtn.disabled = false;
                 } else {
-                    buttons.resume.classList.add('hidden');
+                    resumeBtn.classList.add('btn-disabled');
+                    resumeBtn.disabled = true;
                 }
-            };
-
-            // --- Functions to switch between screens ---
-            const showScreen = (screenName) => {
-                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
-                screens[screenName].classList.remove('hidden');
-            };
-
-            // --- Core App Logic ---
-            const startNewSession = () => {
-                const savedData = loadProgress();
-                if (savedData && savedData.userAnswers.length > 0) {
-                    if (confirm("Starting a new session will erase your previously saved progress. Are you sure?")) {
-                        clearProgress();
-                        inputs.domain.value = '';
-                        showScreen('domain');
-                    }
-                } else {
-                    clearProgress();
-                    inputs.domain.value = '';
-                    showScreen('domain');
-                }
-            };
-
-            const resumeSession = () => {
-                const savedData = loadProgress();
-                if (savedData) {
-                    userDomain = savedData.userDomain;
-                    userAnswers = savedData.userAnswers;
-                    currentQuestionIndex = savedData.currentQuestionIndex;
-                    displayQuestion();
-                }
-            };
-
-            const startQuiz = () => {
-                userDomain = inputs.domain.value.trim();
-                if (userDomain === "") {
-                    showMessage("Please describe your challenge to continue.");
-                    return;
-                }
-                currentQuestionIndex = 0;
-                userAnswers = [];
-                saveProgress();
-                displayQuestion();
-            };
-
-            const displayQuestion = () => {
-                if (currentQuestionIndex < questions.length) {
-                    const question = questions[currentQuestionIndex];
-                    displays.questionTitle.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
-                    displays.questionText.textContent = question.text.replace(/__DOMAIN__/g, `this situation with "${userDomain}"`);
-                    displays.questionHint.innerHTML = question.hint;
-                    
-                    const existingAnswer = userAnswers[currentQuestionIndex];
-                    inputs.answer.value = existingAnswer ? existingAnswer.answer : "";
-                    
-                    buttons.back.classList.toggle('hidden', currentQuestionIndex === 0);
-
-                    showScreen('question');
-                    inputs.answer.focus();
-                } else {
-                    displayReview();
-                }
-            };
-
-            const nextQuestion = () => {
-                const answer = inputs.answer.value.trim();
-                userAnswers[currentQuestionIndex] = { question: displays.questionText.textContent, answer: answer };
-                currentQuestionIndex++;
-                saveProgress();
-                displayQuestion();
-            };
-
-            const previousQuestion = () => {
-                if (currentQuestionIndex > 0) {
-                    const answer = inputs.answer.value.trim();
-                    userAnswers[currentQuestionIndex] = { question: displays.questionText.textContent, answer: answer };
-                    currentQuestionIndex--;
-                    saveProgress();
-                    displayQuestion();
-                }
-            };
-            
-            const displayReview = () => {
-                let reviewText = `--- Authenticity File ---\n`;
-                reviewText += `Challenge: ${userDomain}\n`;
-                reviewText += `Timestamp: ${new Date().toISOString()}\n\n`;
-
-                userAnswers.forEach((item, index) => {
-                    reviewText += `## Question ${index + 1} ##\nQ: ${item.question}\nA: ${item.answer}\n\n`;
-                });
-
-                displays.reviewContent.textContent = reviewText;
-                showScreen('review');
-            };
-
-            // --- Export Functions ---
-            const copyToClipboard = () => {
-                const textArea = document.createElement("textarea");
-                textArea.value = displays.reviewContent.textContent;
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    showMessage("Results copied to clipboard!");
-                } catch (err) {
-                    showMessage("Failed to copy. Please try again.");
-                }
-                document.body.removeChild(textArea);
-            };
-
-            const downloadFile = () => {
-                const textToSave = displays.reviewContent.textContent;
-                const blob = new Blob([textToSave], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `${userDomain.replace(/\s+/g, '-')}_Authenticity.txt`;
-                document.body.appendChild(a);
-                a.click();
-                URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            };
-
-            // --- Utility: A simple, non-blocking message box ---
-            const showMessage = (message) => {
-                const messageBox = document.createElement('div');
-                messageBox.textContent = message;
-                messageBox.style.position = 'fixed';
-                messageBox.style.top = '20px';
-                messageBox.style.left = '50%';
-                messageBox.style.transform = 'translateX(-50%)';
-                messageBox.style.backgroundColor = '#333';
-                messageBox.style.color = 'white';
-                messageBox.style.padding = '10px 20px';
-                messageBox.style.borderRadius = '8px';
-                messageBox.style.zIndex = '1000';
-                messageBox.style.opacity = '0';
-                messageBox.style.transition = 'opacity 0.5s';
-                document.body.appendChild(messageBox);
-
-                setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
-                setTimeout(() => {
-                    messageBox.style.opacity = '0';
-                    setTimeout(() => { document.body.removeChild(messageBox); }, 500);
-                }, 3000);
-            };
+            }
 
             // --- Event Listeners ---
-            buttons.startHere.addEventListener('click', () => showScreen('explanation'));
-            buttons.continue.addEventListener('click', () => {
-                showScreen('session');
-                checkResumeState();
-            });
-            buttons.startNew.addEventListener('click', startNewSession);
-            buttons.resume.addEventListener('click', resumeSession);
-            buttons.begin.addEventListener('click', startQuiz);
-            buttons.back.addEventListener('click', previousQuestion);
-            buttons.next.addEventListener('click', nextQuestion);
-            buttons.copy.addEventListener('click', copyToClipboard);
-            buttons.download.addEventListener('click', downloadFile);
-            buttons.finish.addEventListener('click', () => showScreen('conclusion'));
-            buttons.startOver.addEventListener('click', () => {
-                clearProgress();
-                showScreen('start');
-            });
+            newBtn.addEventListener('click', startNewSession);
+            resumeBtn.addEventListener('click', resumeSession);
+            nextBtn.addEventListener('click', handleNext);
+            prevBtn.addEventListener('click', handlePrev);
+            summaryBtn.addEventListener('click', showSummary);
+            backToQuestionsBtn.addEventListener('click', () => showScreen('question'));
+            responseTextArea.addEventListener('input', saveCurrentResponse);
+
+            // --- Core Logic ---
+            function startNewSession() {
+                currentState = {
+                    currentQuestionIndex: 0,
+                    responses: Array(questions.length).fill('')
+                };
+                saveState();
+                renderQuestion();
+                showScreen('question');
+            }
             
-            // --- Initial Load ---
-            showScreen('start');
+            // --- MODIFIED FUNCTION ---
+            function resumeSession() {
+                const savedState = localStorage.getItem(storageKey);
+                if (savedState) {
+                    currentState = JSON.parse(savedState);
+                    renderQuestion();
+                    showScreen('question');
+                }
+            }
+
+            function handleNext() {
+                if (currentState.currentQuestionIndex < questions.length - 1) {
+                    currentState.currentQuestionIndex++;
+                    renderQuestion();
+                } else {
+                    showSummary();
+                }
+            }
+
+            function handlePrev() {
+                if (currentState.currentQuestionIndex > 0) {
+                    currentState.currentQuestionIndex--;
+                    renderQuestion();
+                }
+            }
+
+            function saveCurrentResponse() {
+                currentState.responses[currentState.currentQuestionIndex] = responseTextArea.value;
+                saveState();
+            }
+
+            function saveState() {
+                localStorage.setItem(storageKey, JSON.stringify(currentState));
+            }
+
+            // --- Rendering and UI ---
+            function renderQuestion() {
+                const index = currentState.currentQuestionIndex;
+                const question = questions[index];
+                questionTitle.textContent = question.title;
+                questionText.textContent = question.text;
+                responseTextArea.value = currentState.responses[index] || '';
+                questionCounter.textContent = `Question ${index + 1} of ${questions.length}`;
+
+                prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+                nextBtn.textContent = index === questions.length - 1 ? 'Finish' : 'Next';
+            }
+
+            function showSummary() {
+                summaryContent.innerHTML = '';
+                questions.forEach((q, index) => {
+                    const response = currentState.responses[index];
+                    const summaryItem = document.createElement('div');
+                    summaryItem.className = 'p-4 border rounded-lg bg-gray-50';
+                    summaryItem.innerHTML = `
+                        <h3 class="font-bold text-lg text-indigo-700">${q.title}</h3>
+                        <p class="mt-2 text-gray-700">${response ? response.replace(/\n/g, '<br>') : '<em>No response given.</em>'}</p>
+                    `;
+                    summaryContent.appendChild(summaryItem);
+                });
+                showScreen('summary');
+            }
+
+            function showScreen(screenName) {
+                initialScreen.classList.add('hidden');
+                questionScreen.classList.add('hidden');
+                summaryScreen.classList.add('hidden');
+
+                if (screenName === 'initial') {
+                    initialScreen.classList.remove('hidden');
+                } else if (screenName === 'question') {
+                    questionScreen.classList.remove('hidden');
+                } else if (screenName === 'summary') {
+                    summaryScreen.classList.remove('hidden');
+                }
+            }
+            
+            init();
         });
     </script>
 </body>
