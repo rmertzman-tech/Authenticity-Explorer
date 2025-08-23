@@ -14,10 +14,6 @@
             background-color: white;
             border-radius: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-5px);
         }
         .btn {
             transition: background-color 0.3s, transform 0.2s;
@@ -46,10 +42,6 @@
         .btn-danger:hover {
             background-color: #dc2626;
         }
-        .btn-disabled {
-            background-color: #d1d5db;
-            cursor: not-allowed;
-        }
         .btn-link {
             background: none;
             color: #4f46e5;
@@ -59,7 +51,6 @@
         .btn-link:hover {
             color: #4338ca;
         }
-        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -79,6 +70,9 @@
             text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
@@ -87,9 +81,16 @@
         <!-- Introduction Screen -->
         <div id="intro-screen" class="card p-8 text-left">
             <h1 class="text-3xl font-bold mb-4 text-center">Welcome to the Authenticity Explorer</h1>
-            <p class="mb-4 text-gray-700">This is the fourth and final data-gathering step for your <strong>Personal Reality Framework (PRF)</strong>. Authenticity is about aligning your inner self with your outer actions.</p>
-            <p class="mb-4 text-gray-700">In this module, you will explore what it means to be true to yourself. Understanding your relationship with authenticity is vital for building a coherent and meaningful life.</p>
-            <p class="mb-4 text-gray-700">After completing this module, you will have a full set of insights from the <strong>B.R.O.A.</strong> explorers. You will then be ready to bring them all together in the final <strong>PRF Synthesizer-Analyzer</strong>.</p>
+            <p class="mb-4 text-gray-700">This is the final of four explorers (<strong>B</strong>eliefs, <strong>R</strong>ules, <strong>O</strong>ntology, <strong>A</strong>uthenticity) designed to help you build your <strong>Personal Reality Framework (PRF)</strong>. Each app will help you reflect on a different part of your internal world.</p>
+            <p class="mb-4 text-gray-700">After using each explorer, you will bring your reflections into the final <strong>PRF Synthesizer</strong> to see the full picture.</p>
+            <div class="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-800 p-4 rounded-md my-6">
+                <h3 class="font-bold">Saving and Transferring Your Work</h3>
+                <p class="mt-2">You have two options for moving your summaries to the Synthesizer:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Save to Synthesizer:</strong> The easiest option if you are using the same computer and browser for the whole project.</li>
+                    <li><strong>Download Summary:</strong> The best option if you switch between computers or want a permanent backup file.</li>
+                </ul>
+            </div>
             <div class="text-center mt-6">
                 <button id="continue-btn" class="btn btn-primary px-6 py-3 rounded-lg font-semibold text-lg">Continue</button>
             </div>
@@ -152,6 +153,7 @@
             <div class="text-center mt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <button id="back-to-questions-btn" class="btn btn-secondary px-6 py-3 rounded-lg font-semibold">Back to Questions</button>
                 <button id="download-summary-btn" class="btn btn-primary px-6 py-3 rounded-lg font-semibold">Download Summary</button>
+                <button id="save-to-synth-btn" class="btn btn-primary bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold">Save to Synthesizer</button>
             </div>
             <div class="mt-6 text-center">
                  <button id="summary-start-over-btn" class="btn btn-link">Start a New Exploration</button>
@@ -175,14 +177,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Elements ---
-            const screens = {
-                intro: document.getElementById('intro-screen'),
-                choice: document.getElementById('choice-screen'),
-                domain: document.getElementById('domain-screen'),
-                question: document.getElementById('question-screen'),
-                summary: document.getElementById('summary-screen'),
-            };
-
+            const screens = { intro: document.getElementById('intro-screen'), choice: document.getElementById('choice-screen'), domain: document.getElementById('domain-screen'), question: document.getElementById('question-screen'), summary: document.getElementById('summary-screen'), };
             const buttons = {
                 continue: document.getElementById('continue-btn'),
                 generalAuthenticity: document.getElementById('general-authenticity-btn'),
@@ -194,6 +189,7 @@
                 summary: document.getElementById('summary-btn'),
                 backToQuestions: document.getElementById('back-to-questions-btn'),
                 downloadSummary: document.getElementById('download-summary-btn'),
+                saveToSynth: document.getElementById('save-to-synth-btn'),
                 backToIntro: document.getElementById('back-to-intro-btn'),
                 backToChoice: document.getElementById('back-to-choice-btn'),
                 questionStartOver: document.getElementById('question-start-over-btn'),
@@ -201,25 +197,14 @@
                 confirmYes: document.getElementById('confirm-yes-btn'),
                 confirmNo: document.getElementById('confirm-no-btn'),
             };
-            
             const modal = document.getElementById('confirmation-modal');
-
-            const displays = {
-                questionTitle: document.getElementById('question-title'),
-                questionText: document.getElementById('question-text'),
-                questionCounter: document.getElementById('question-counter'),
-                summaryTitle: document.getElementById('summary-title'),
-                summaryContent: document.getElementById('summary-content'),
-            };
-            
-            const inputs = {
-                domain: document.getElementById('domain-input'),
-                response: document.getElementById('response'),
-            };
+            const displays = { questionTitle: document.getElementById('question-title'), questionText: document.getElementById('question-text'), questionCounter: document.getElementById('question-counter'), summaryTitle: document.getElementById('summary-title'), summaryContent: document.getElementById('summary-content'), };
+            const inputs = { domain: document.getElementById('domain-input'), response: document.getElementById('response'), };
 
             // --- Storage Keys ---
             const GENERAL_KEY = 'authenticity_app_general_state';
             const SPECIFIC_KEY = 'authenticity_app_specific_state';
+            const SYNTH_KEY = 'prf_authenticity_data';
 
             // --- Question Data ---
             const generalQuestions = [
@@ -229,7 +214,6 @@
                 { title: "Values and Actions", text: "How do your personal values guide your actions? Do you feel most authentic when your actions align with your values?" },
                 { title: "Growth and Change", text: "Can a person change significantly over time and still be authentic? How does personal growth relate to being true to yourself?" }
             ];
-            
             const specificQuestions = [
                 { title: "The 'Mask'", text: "In the situation with '__DOMAIN__', what kind of 'mask' did you feel you had to wear? What was the difference between your inner feelings and your outer actions?" },
                 { title: "The Fear", text: "What did you fear would happen if you acted with complete authenticity in '__DOMAIN__'?" },
@@ -257,19 +241,13 @@
             // --- Screen Navigation ---
             function showScreen(screenName) {
                 Object.values(screens).forEach(screen => screen.classList.add('hidden'));
-                if (screens[screenName]) {
-                    screens[screenName].classList.remove('hidden');
-                }
+                if (screens[screenName]) screens[screenName].classList.remove('hidden');
             }
 
             // --- Session Management ---
             function startNewSession(mode) {
                 currentMode = mode;
-                currentState = {
-                    currentQuestionIndex: 0,
-                    responses: Array(getQuestions().length).fill(''),
-                    domain: (mode === 'specific') ? inputs.domain.value.trim() : 'General'
-                };
+                currentState = { currentQuestionIndex: 0, responses: Array(getQuestions().length).fill(''), domain: (mode === 'specific') ? inputs.domain.value.trim() : 'General' };
                 renderQuestion();
                 showScreen('question');
             }
@@ -277,16 +255,13 @@
             function resumeSession() {
                 const generalSave = JSON.parse(localStorage.getItem(GENERAL_KEY));
                 const specificSave = JSON.parse(localStorage.getItem(SPECIFIC_KEY));
-
                 if (generalSave && (!specificSave || generalSave.timestamp > specificSave.timestamp)) {
                     currentState = generalSave;
                     currentMode = 'general';
                 } else if (specificSave) {
                     currentState = specificSave;
                     currentMode = 'specific';
-                } else {
-                    return;
-                }
+                } else { return; }
                 renderQuestion();
                 showScreen('question');
             }
@@ -307,7 +282,6 @@
                 const newConfirmBtn = buttons.confirmYes.cloneNode(true);
                 buttons.confirmYes.parentNode.replaceChild(newConfirmBtn, buttons.confirmYes);
                 buttons.confirmYes = newConfirmBtn;
-
                 buttons.confirmYes.onclick = () => {
                     modal.classList.add('hidden');
                     onConfirm();
@@ -345,9 +319,9 @@
             function getQuestions() {
                 return currentMode === 'general' ? generalQuestions : specificQuestions;
             }
-
-            function downloadSummary() {
-                let summaryText = `Summary of My Authenticity (${currentState.domain})\n\n`;
+            
+            function generateSummaryText() {
+                let summaryText = `(File: ${currentState.domain.replace(/\s+/g, '-')}-Authenticity-Summary.txt)\n\n`;
                 const questions = getQuestions();
                 questions.forEach((q, index) => {
                     const response = currentState.responses[index] || 'No response given.';
@@ -356,26 +330,40 @@
                     summaryText += `Q: ${questionText}\n`;
                     summaryText += `A: ${response}\n\n`;
                 });
+                return summaryText;
+            }
 
+            function downloadSummary() {
+                const summaryText = generateSummaryText();
                 const blob = new Blob([summaryText], { type: 'text/plain;charset=utf-8' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 const filename = `${currentState.domain.replace(/\s+/g, '-')}-Authenticity-Summary.txt`;
                 link.download = filename;
-                
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             }
             
-            function showMessage(message) {
+            function saveToSynthesizer() {
+                const summaryText = generateSummaryText();
+                let existingData = localStorage.getItem(SYNTH_KEY) || '';
+                if (existingData.trim().length > 0) {
+                    existingData += `\n\n`;
+                }
+                const newData = existingData + summaryText;
+                localStorage.setItem(SYNTH_KEY, newData);
+                showMessage('Saved to Synthesizer!', 'success');
+            }
+            
+            function showMessage(message, type = 'error') {
                 const toast = document.createElement('div');
                 toast.textContent = message;
-                toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg';
+                const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+                toast.className = `fixed top-5 left-1/2 -translate-x-1/2 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300`;
                 document.body.appendChild(toast);
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
+                setTimeout(() => toast.style.opacity = '0', 2700);
+                setTimeout(() => toast.remove(), 3000);
             }
 
             // --- Rendering ---
@@ -383,12 +371,10 @@
                 const questions = getQuestions();
                 const index = currentState.currentQuestionIndex;
                 const question = questions[index];
-                
                 displays.questionTitle.textContent = question.title;
                 displays.questionText.textContent = question.text.replace(/__DOMAIN__/g, `this situation with "${currentState.domain}"`);
                 inputs.response.value = currentState.responses[index] || '';
                 displays.questionCounter.textContent = `Question ${index + 1} of ${questions.length}`;
-
                 buttons.prev.style.visibility = index === 0 ? 'hidden' : 'visible';
                 buttons.next.textContent = index === questions.length - 1 ? 'Finish' : 'Next';
             }
@@ -402,11 +388,7 @@
                     const summaryItem = document.createElement('div');
                     summaryItem.className = 'p-4 border rounded-lg bg-gray-50 text-left';
                     const questionText = q.text.replace(/__DOMAIN__/g, `this situation with "${currentState.domain}"`);
-                    summaryItem.innerHTML = `
-                        <h3 class="font-bold text-lg text-indigo-700">${q.title}</h3>
-                        <p class="mt-1 text-gray-500 italic">Q: ${questionText}</p>
-                        <p class="mt-2 text-gray-800">${response ? response.replace(/\n/g, '<br>') : '<em>No response given.</em>'}</p>
-                    `;
+                    summaryItem.innerHTML = `<h3 class="font-bold text-lg text-indigo-700">${q.title}</h3><p class="mt-1 text-gray-500 italic">Q: ${questionText}</p><p class="mt-2 text-gray-800">${response ? response.replace(/\n/g, '<br>') : '<em>No response given.</em>'}</p>`;
                     displays.summaryContent.appendChild(summaryItem);
                 });
                 showScreen('summary');
@@ -429,6 +411,7 @@
             buttons.summary.addEventListener('click', showSummary);
             buttons.backToQuestions.addEventListener('click', () => showScreen('question'));
             buttons.downloadSummary.addEventListener('click', downloadSummary);
+            buttons.saveToSynth.addEventListener('click', saveToSynthesizer);
             inputs.response.addEventListener('input', saveCurrentResponse);
             buttons.backToIntro.addEventListener('click', () => showScreen('intro'));
             buttons.backToChoice.addEventListener('click', () => showScreen('choice'));
